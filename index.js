@@ -33,7 +33,7 @@ class Fintopio {
   async waitWithCountdown(seconds) {
     for (let i = seconds; i >= 0; i--) {
       readline.cursorTo(process.stdout, 0);
-      process.stdout.write(`===== Tunggu ${i} detik untuk melanjutkan =====`);
+      process.stdout.write(`===== Tunggu Banh ${i} detik untuk melanjutkan =====`);
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
     console.log('');
@@ -47,7 +47,7 @@ class Fintopio {
       const response = await axios.get(`${url}?${userData}`, { headers });
       return response.data.token;
     } catch (error) {
-      this.log(`Kesalahan saat otentikasi: ${error.message}`.red);
+      this.log(`kesalahan saat otentikasi: ${error.message}`.red);
       return null;
     }
   }
@@ -64,7 +64,7 @@ class Fintopio {
       const response = await axios.get(url, { headers });
       return response.data;
     } catch (error) {
-      this.log(`Kesalahan saat mengambil informasi profil: ${error.message}`.red);
+      this.log(`kesalahan saat mengambil profil: ${error.message}`.red);
       return null;
     }
   }
@@ -87,7 +87,7 @@ class Fintopio {
 
   async checkTask(token, id) {
     if (!id) {
-      this.log(`Id [ ${id} ] tidak valid! ${error.message}`.red);
+      this.log(`Id [ ${id} ] gak valid ! ${error.message}`.red);
       return;
     }
     const url = `${this.baseUrl}/hold/tasks/${id}/verify`;
@@ -107,7 +107,7 @@ class Fintopio {
 
   async claimQuest(token, quest) {
     if (!quest?.id) {
-      this.log(`Id [ ${quest?.id} ] tidak valid! ${error.message}`.red);
+      this.log(`Id [ ${quest?.id} ] Ga valid ! ${error.message}`.red);
       return;
     }
     const url =
@@ -125,11 +125,12 @@ class Fintopio {
       if (response?.data?.status === 'in-progress') {
         return await this.checkTask(token, quest?.id);
       } else if (response?.data?.status === 'completed') {
-        return 1;
+        return 1
       } else {
-        this.log(`Quest sedang diverifikasi - status: ${response?.data?.status}`.yellow);
+        this.log(`Quest sedang di verifikasi - status: ${response?.data?.status}`.yellow);
       }
-    } catch (error) {}
+    } catch (error) {
+    }
   }
 
   async doQuest(token) {
@@ -140,6 +141,7 @@ class Fintopio {
       'Content-Type': 'application/json',
       path:'/api/hold/tasks',
       'authority':'fintopio-tg.fintopio.com'
+
     };
 
     try {
@@ -148,6 +150,7 @@ class Fintopio {
       if (!listQuest.length) return;
 
       for await (const quest of listQuest) {
+        
         const { id } = quest;
         readline.cursorTo(process.stdout, 0);
         process.stdout.write(
@@ -161,19 +164,19 @@ class Fintopio {
           process.stdout.write(
             `${colors.magenta(`[*]`)}` +
               colors.yellow(` Quest : ${colors.white(id)} `) +
-              colors.green('Selesai!                  '),
+              colors.green('Done !                  '),
           );
         } else {
           process.stdout.write(
             `${colors.magenta(`[*]`)}` +
               colors.yellow(` Quest : ${colors.white(id)} `) +
-              colors.red('Gagal!                  '),
+              colors.red('Failed !                  '),
           );
         }
         console.log();
       }
     } catch (error) {
-      this.log(`Kesalahan mengambil quest: ${error.message}`.red);
+      this.log(`Kesalahan mengambil quest : ${error.message}`.red);
     }
   }
 
@@ -240,10 +243,10 @@ class Fintopio {
       const userPart = userData.match(/user=([^&]*)/)[1];
       const decodedUserPart = decodeURIComponent(userPart);
       const userObj = JSON.parse(decodedUserPart);
-      return userObj.first_name || 'Tidak Diketahui';
+      return userObj.first_name || 'Unknown';
     } catch (error) {
       this.log(`Kesalahan saat mengekstrak first_name: ${error.message}`.red);
-      return 'Tidak Diketahui';
+      return 'Unknown';
     }
   }
 
@@ -267,66 +270,69 @@ class Fintopio {
       let time = []
 
       for (let i = 0; i < users.length; i++) {
-  const userData = users[i];
-  const first_name = this.extractFirstName(userData);
-  console.log(
-    `========== Akun ${i + 1} | ${first_name.green} ==========`,
-  );
-  const token = await this.auth(userData);
-  if (token) {
-    this.log(`Login berhasil!`.green);
-    const profile = await this.getProfile(token);
-    if (profile) {
-      const balance = profile.balance;
-      this.log(`Saldo: ${balance.green}`);
-      await this.checkInDaily(token);
-      await this.doQuest(token);
+        const userData = users[i];
+        const first_name = this.extractFirstName(userData);
+        console.log(
+          `========== AKUN KE ${i + 1} | ${first_name.green} ==========`,
+        );
+        const token = await this.auth(userData);
+        if (token) {
+          this.log(`Login berhasil!`.green);
+          const profile = await this.getProfile(token);
+          if (profile) {
+            const balance = profile.balance;
+            this.log(`Balance: ${balance.green}`);
+            await this.checkInDaily(token);
+            await this.doQuest(token);
 
-      const farmingState = await this.getFarmingState(token);
-      firstAccountFinishTime = farmingState.timings.finish;
-      time.push(firstAccountFinishTime);
-      timeWait.set(keyTime, time);
-      if (farmingState) {
-        if (farmingState.state === 'idling') {
-          await this.startFarming(token);
-        } else if (farmingState.state === 'farming') {
-          const finishTimestamp = farmingState.timings.finish;
-          if (finishTimestamp) {
-            const finishTime = DateTime.fromMillis(
-              finishTimestamp,
-            ).toLocaleString(DateTime.DATETIME_FULL);
-            this.log(`Waktu selesai farming: ${finishTime}`.green);
+            const farmingState = await this.getFarmingState(token);
+            firstAccountFinishTime = farmingState.timings.finish;
+            time.push(firstAccountFinishTime)
+            timeWait.set(keyTime,time)
+            if (farmingState) {
+              if (farmingState.state === 'idling') {
+                await this.startFarming(token);
+              } else if (farmingState.state === 'farming') {
+                const finishTimestamp = farmingState.timings.finish;
+                if (finishTimestamp) {
+                  const finishTime = DateTime.fromMillis(
+                    finishTimestamp,
+                  ).toLocaleString(DateTime.DATETIME_FULL);
+                  this.log(`Waktu selesai farming: ${finishTime}`.green);
 
-            if (i === 0) {
-              firstAccountFinishTime = finishTimestamp;
-            }
+                  if (i === 0) {
+                    firstAccountFinishTime = finishTimestamp;
+                  }
 
-            const currentTime = DateTime.now().toMillis();
-            if (currentTime > finishTimestamp) {
-              await this.claimFarming(token);
-              await this.startFarming(token);
+                  const currentTime = DateTime.now().toMillis();
+                  if (currentTime > finishTimestamp) {
+                    await this.claimFarming(token);
+                    await this.startFarming(token);
+                  }
+                }
+              } else if (farmingState.state === 'farmed') {
+                await this.claimFarming(token);
+                await this.startFarming(token);
+              }
             }
           }
-        } else if (farmingState.state === 'farmed') {
-          await this.claimFarming(token);
-          await this.startFarming(token);
         }
+      }
+
+      const listTime = timeWait.get(keyTime)
+      const timeMin = Math.min(...listTime)
+      const waitTime = this.calculateWaitTime(timeMin);
+      if (waitTime && waitTime > 0) {
+        await this.waitWithCountdown(Math.floor(waitTime / 1000));
+      } else {
+        this.log(
+          'Tidak ada waktu tunggu yg valid, melanjutkan ke literasi berikutnya.'
+            .yellow,
+        );
+        await this.waitWithCountdown(5);
       }
     }
   }
-}
-
-const listTime = timeWait.get(keyTime);
-const timeMin = Math.min(...listTime);
-const waitTime = this.calculateWaitTime(timeMin);
-if (waitTime && waitTime > 0) {
-  await this.waitWithCountdown(Math.floor(waitTime / 1000));
-} else {
-  this.log(
-    'Tidak ada waktu tunggu yang valid, melanjutkan ke iterasi berikutnya segera.'.yellow,
-  );
-  await this.waitWithCountdown(5);
-}
 }
 
 if (require.main === module) {
