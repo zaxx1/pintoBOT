@@ -33,7 +33,7 @@ class Fintopio {
   async waitWithCountdown(seconds) {
     for (let i = seconds; i >= 0; i--) {
       readline.cursorTo(process.stdout, 0);
-      process.stdout.write(`===== Chờ ${i} giây để tiếp tục =====`);
+      process.stdout.write(`===== Tunggu ${i} detik untuk melanjutkan =====`);
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
     console.log('');
@@ -47,7 +47,7 @@ class Fintopio {
       const response = await axios.get(`${url}?${userData}`, { headers });
       return response.data.token;
     } catch (error) {
-      this.log(`Lỗi khi xác thực: ${error.message}`.red);
+      this.log(`Kesalahan saat otentikasi: ${error.message}`.red);
       return null;
     }
   }
@@ -64,7 +64,7 @@ class Fintopio {
       const response = await axios.get(url, { headers });
       return response.data;
     } catch (error) {
-      this.log(`Lỗi khi lấy thông tin profile: ${error.message}`.red);
+      this.log(`Kesalahan saat mengambil informasi profil: ${error.message}`.red);
       return null;
     }
   }
@@ -79,15 +79,15 @@ class Fintopio {
 
     try {
       const response = await axios.post(url, {}, { headers });
-      this.log('Điểm danh hàng ngày thành công!'.green);
+      this.log('Check-in harian berhasil!'.green);
     } catch (error) {
-      this.log(`Lỗi khi điểm danh hàng ngày: ${error.message}`.red);
+      this.log(`Kesalahan saat check-in harian: ${error.message}`.red);
     }
   }
 
   async checkTask(token, id) {
     if (!id) {
-      this.log(`Id [ ${id} ] không hợp lệ ! ${error.message}`.red);
+      this.log(`Id [ ${id} ] tidak valid! ${error.message}`.red);
       return;
     }
     const url = `${this.baseUrl}/hold/tasks/${id}/verify`;
@@ -101,13 +101,13 @@ class Fintopio {
       const response = await axios.post(url, {}, { headers });
       return response?.status === 'completed' ? 1 : 0;
     } catch (error) {
-      this.log(`Lỗi khi điểm danh hàng ngày: ${error.message}`.red);
+      this.log(`Kesalahan saat check-in harian: ${error.message}`.red);
     }
   }
 
   async claimQuest(token, quest) {
     if (!quest?.id) {
-      this.log(`Id [ ${quest?.id} ] không hợp lệ ! ${error.message}`.red);
+      this.log(`Id [ ${quest?.id} ] tidak valid! ${error.message}`.red);
       return;
     }
     const url =
@@ -125,12 +125,11 @@ class Fintopio {
       if (response?.data?.status === 'in-progress') {
         return await this.checkTask(token, quest?.id);
       } else if (response?.data?.status === 'completed') {
-        return 1
+        return 1;
       } else {
-        this.log(`Quest đang verifying - status: ${response?.data?.status}`.yellow);
+        this.log(`Quest sedang diverifikasi - status: ${response?.data?.status}`.yellow);
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   }
 
   async doQuest(token) {
@@ -141,7 +140,6 @@ class Fintopio {
       'Content-Type': 'application/json',
       path:'/api/hold/tasks',
       'authority':'fintopio-tg.fintopio.com'
-
     };
 
     try {
@@ -150,13 +148,12 @@ class Fintopio {
       if (!listQuest.length) return;
 
       for await (const quest of listQuest) {
-        
         const { id } = quest;
         readline.cursorTo(process.stdout, 0);
         process.stdout.write(
           `${colors.magenta(`[*]`)}` +
             colors.yellow(` Quest : ${colors.white(id)} `) +
-            colors.red('Đang làm... '),
+            colors.red('Sedang dikerjakan... '),
         );
         const isFinish = await this.claimQuest(token, quest);
         readline.cursorTo(process.stdout, 0);
@@ -164,19 +161,19 @@ class Fintopio {
           process.stdout.write(
             `${colors.magenta(`[*]`)}` +
               colors.yellow(` Quest : ${colors.white(id)} `) +
-              colors.green('Done !                  '),
+              colors.green('Selesai!                  '),
           );
         } else {
           process.stdout.write(
             `${colors.magenta(`[*]`)}` +
               colors.yellow(` Quest : ${colors.white(id)} `) +
-              colors.red('Faild !                  '),
+              colors.red('Gagal!                  '),
           );
         }
         console.log();
       }
     } catch (error) {
-      this.log(`Lỗi lấy quest : ${error.message}`.red);
+      this.log(`Kesalahan mengambil quest: ${error.message}`.red);
     }
   }
 
@@ -191,7 +188,7 @@ class Fintopio {
       const response = await axios.get(url, { headers });
       return response.data;
     } catch (error) {
-      this.log(`Lỗi khi lấy trạng thái farming: ${error.message}`.red);
+      this.log(`Kesalahan saat mengambil status farming: ${error.message}`.red);
       return null;
     }
   }
@@ -212,13 +209,13 @@ class Fintopio {
         const finishTime = DateTime.fromMillis(finishTimestamp).toLocaleString(
           DateTime.DATETIME_FULL,
         );
-        this.log(`Bắt đầu farm...`.yellow);
-        this.log(`Thời gian hoàn thành farm: ${finishTime}`.green);
+        this.log(`Mulai farming...`.yellow);
+        this.log(`Waktu selesai farming: ${finishTime}`.green);
       } else {
-        this.log('Không có thời gian hoàn thành.'.yellow);
+        this.log('Tidak ada waktu selesai.'.yellow);
       }
     } catch (error) {
-      this.log(`Lỗi khi bắt đầu farming: ${error.message}`.red);
+      this.log(`Kesalahan saat mulai farming: ${error.message}`.red);
     }
   }
 
@@ -232,9 +229,9 @@ class Fintopio {
 
     try {
       const res = await axios.post(url, {}, { headers });
-      this.log('Claim farm thành công!'.green);
+      this.log('Claim farming berhasil!'.green);
     } catch (error) {
-      this.log(`Lỗi khi claim: ${error.message}`.red);
+      this.log(`Kesalahan saat claim: ${error.message}`.red);
     }
   }
 
@@ -243,10 +240,10 @@ class Fintopio {
       const userPart = userData.match(/user=([^&]*)/)[1];
       const decodedUserPart = decodeURIComponent(userPart);
       const userObj = JSON.parse(decodedUserPart);
-      return userObj.first_name || 'Unknown';
+      return userObj.first_name || 'Tidak Diketahui';
     } catch (error) {
-      this.log(`Lỗi khi trích xuất first_name: ${error.message}`.red);
-      return 'Unknown';
+      this.log(`Kesalahan saat mengekstrak first_name: ${error.message}`.red);
+      return 'Tidak Diketahui';
     }
   }
 
@@ -269,76 +266,4 @@ class Fintopio {
       let firstAccountFinishTime = null;
       let time = []
 
-      for (let i = 0; i < users.length; i++) {
-        const userData = users[i];
-        const first_name = this.extractFirstName(userData);
-        console.log(
-          `========== Tài khoản ${i + 1} | ${first_name.green} ==========`,
-        );
-        const token = await this.auth(userData);
-        if (token) {
-          this.log(`Đăng nhập thành công!`.green);
-          const profile = await this.getProfile(token);
-          if (profile) {
-            const balance = profile.balance;
-            this.log(`Balance: ${balance.green}`);
-            await this.checkInDaily(token);
-            await this.doQuest(token);
-
-            const farmingState = await this.getFarmingState(token);
-            firstAccountFinishTime = farmingState.timings.finish;
-            time.push(firstAccountFinishTime)
-            timeWait.set(keyTime,time)
-            if (farmingState) {
-              if (farmingState.state === 'idling') {
-                await this.startFarming(token);
-              } else if (farmingState.state === 'farming') {
-                const finishTimestamp = farmingState.timings.finish;
-                if (finishTimestamp) {
-                  const finishTime = DateTime.fromMillis(
-                    finishTimestamp,
-                  ).toLocaleString(DateTime.DATETIME_FULL);
-                  this.log(`Thời gian hoàn thành farm: ${finishTime}`.green);
-
-                  if (i === 0) {
-                    firstAccountFinishTime = finishTimestamp;
-                  }
-
-                  const currentTime = DateTime.now().toMillis();
-                  if (currentTime > finishTimestamp) {
-                    await this.claimFarming(token);
-                    await this.startFarming(token);
-                  }
-                }
-              } else if (farmingState.state === 'farmed') {
-                await this.claimFarming(token);
-                await this.startFarming(token);
-              }
-            }
-          }
-        }
-      }
-
-      const listTime = timeWait.get(keyTime)
-      const timeMin = Math.min(...listTime)
-      const waitTime = this.calculateWaitTime(timeMin);
-      if (waitTime && waitTime > 0) {
-        await this.waitWithCountdown(Math.floor(waitTime / 1000));
-      } else {
-        this.log(
-          'Không có thời gian chờ hợp lệ, tiếp tục vòng lặp ngay lập tức.'
-            .yellow,
-        );
-        await this.waitWithCountdown(5);
-      }
-    }
-  }
-}
-
-if (require.main === module) {
-  const fintopio = new Fintopio();
-  fintopio.main().catch((err) => {
-    console.error(err);
-    process.exit(1);
-  });
-}
+      for (let i = 0; i < users.length; i
