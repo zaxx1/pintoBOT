@@ -266,4 +266,73 @@ class Fintopio {
       let firstAccountFinishTime = null;
       let time = []
 
-      for (let i = 0; i < users.length; i
+      for (let i = 0; i < users.length; i++) {
+  const userData = users[i];
+  const first_name = this.extractFirstName(userData);
+  console.log(
+    `========== Akun ${i + 1} | ${first_name.green} ==========`,
+  );
+  const token = await this.auth(userData);
+  if (token) {
+    this.log(`Login berhasil!`.green);
+    const profile = await this.getProfile(token);
+    if (profile) {
+      const balance = profile.balance;
+      this.log(`Saldo: ${balance.green}`);
+      await this.checkInDaily(token);
+      await this.doQuest(token);
+
+      const farmingState = await this.getFarmingState(token);
+      firstAccountFinishTime = farmingState.timings.finish;
+      time.push(firstAccountFinishTime);
+      timeWait.set(keyTime, time);
+      if (farmingState) {
+        if (farmingState.state === 'idling') {
+          await this.startFarming(token);
+        } else if (farmingState.state === 'farming') {
+          const finishTimestamp = farmingState.timings.finish;
+          if (finishTimestamp) {
+            const finishTime = DateTime.fromMillis(
+              finishTimestamp,
+            ).toLocaleString(DateTime.DATETIME_FULL);
+            this.log(`Waktu selesai farming: ${finishTime}`.green);
+
+            if (i === 0) {
+              firstAccountFinishTime = finishTimestamp;
+            }
+
+            const currentTime = DateTime.now().toMillis();
+            if (currentTime > finishTimestamp) {
+              await this.claimFarming(token);
+              await this.startFarming(token);
+            }
+          }
+        } else if (farmingState.state === 'farmed') {
+          await this.claimFarming(token);
+          await this.startFarming(token);
+        }
+      }
+    }
+  }
+}
+
+const listTime = timeWait.get(keyTime);
+const timeMin = Math.min(...listTime);
+const waitTime = this.calculateWaitTime(timeMin);
+if (waitTime && waitTime > 0) {
+  await this.waitWithCountdown(Math.floor(waitTime / 1000));
+} else {
+  this.log(
+    'Tidak ada waktu tunggu yang valid, melanjutkan ke iterasi berikutnya segera.'.yellow,
+  );
+  await this.waitWithCountdown(5);
+}
+}
+
+if (require.main === module) {
+  const fintopio = new Fintopio();
+  fintopio.main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}
